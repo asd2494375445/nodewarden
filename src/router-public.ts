@@ -255,6 +255,14 @@ export async function handlePublicRoute(
     return handlePrelogin(request, env);
   }
 
+  // Newer official Bitwarden clients use this more specific prelogin route.
+  // It has the same KDF lookup semantics as the legacy endpoint above.
+  if (path === '/identity/accounts/prelogin/password' && method === 'POST') {
+    const blocked = await enforcePublicRateLimit('public-sensitive', LIMITS.rateLimit.sensitivePublicRequestsPerMinute);
+    if (blocked) return blocked;
+    return handlePrelogin(request, env);
+  }
+
   if ((path === '/identity/accounts/recover-2fa' || path === '/api/accounts/recover-2fa') && method === 'POST') {
     return handleRecoverTwoFactor(request, env);
   }
